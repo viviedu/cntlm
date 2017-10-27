@@ -475,7 +475,7 @@ shortcut:
 				if (http_parse_basic(data[loop]->headers, "Proxy-Authorization", tcreds) > 0) {
 					if (debug)
 						printf("NTLM-to-basic: Credentials parsed: %s\\%s at %s\n", tcreds->domain, tcreds->user, tcreds->workstation);
-				} else if (ntlmbasic) {
+				}/* else if (ntlmbasic) {
 					if (debug)
 						printf("NTLM-to-basic: Returning client auth request.\n");
 
@@ -487,7 +487,7 @@ shortcut:
 					free_rr_data(data[1]);
 					rc = (void *)-1;
 					goto bailout;
-				}
+				}*/
 
 				/*
 				 * Header replacement implementation
