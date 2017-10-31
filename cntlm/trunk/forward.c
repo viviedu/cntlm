@@ -27,6 +27,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <strings.h>
+#include <fnmatch.h>
 
 #include "utils.h"
 #include "globals.h"
@@ -581,6 +582,22 @@ shortcut:
 			 */
 			if (loop == 1 && !noauth && data[1]->code != 407)
 				authok = 1;
+
+			/*
+			 * Detect requests from libsoup which result in a 407 from the proxy.
+			 * Return a cntlm 407 instead, as it has trouble parsing upstream ones.
+			 */
+			tmp = hlist_get(data[0]->headers, "User-Agent");
+			if (loop == 1 && !noauth && data[1]->code == 407 && tmp && !fnmatch("*libsoup*", tmp, 0)) {
+				tmp = gen_407_page(data[loop]->http);
+				w = write(cd, tmp, strlen(tmp));
+				free(tmp);
+
+				free_rr_data(data[0]);
+				free_rr_data(data[1]);
+				rc = (void *)-1;
+				goto bailout;
+			}
 
 			/*
 			 * This is to make the ISA AV scanner bullshit transparent. If the page
