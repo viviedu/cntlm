@@ -503,6 +503,7 @@ shortcut:
 				 * cause some ISAs to deny us, even if the connection is already auth'd.
 				 */
 				data[0]->headers = hlist_mod(data[0]->headers, "Proxy-Connection", "keep-alive", 1);
+				data[0]->headers = hlist_mod(data[0]->headers, "Connection", "keep-alive", 1);
 
 				/*
 				 * Remove all Proxy-Authorization headers from client
