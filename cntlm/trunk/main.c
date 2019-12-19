@@ -699,7 +699,7 @@ int main(int argc, char **argv) {
 	cpassnt = new(MINIBUF_SIZE);
 	cpasslm = new(MINIBUF_SIZE);
 	cworkstation = new(MINIBUF_SIZE);
-	cpidfile = new(MINIBUF_SIZE);
+	cpidfile = new(BUFSIZE);
 	cuid = new(MINIBUF_SIZE);
 	cauth = new(MINIBUF_SIZE);
 
@@ -783,7 +783,7 @@ int main(int argc, char **argv) {
 				listen_add("SOCKS5 proxy", &socksd_list, optarg, gateway);
 				break;
 			case 'P':
-				strlcpy(cpidfile, optarg, MINIBUF_SIZE);
+				strlcpy(cpidfile, optarg, BUFSIZE);
 				break;
 			case 'p':
 				/*
