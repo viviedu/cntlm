@@ -1145,8 +1145,6 @@ int main(int argc, char **argv) {
 #if config_gethostname == 1
 		gethostname(cworkstation, MINIBUF_SIZE);
 #endif
-		if (!strlen(cworkstation))
-			strlcpy(cworkstation, "cntlm", MINIBUF_SIZE);
 
 		syslog(LOG_INFO, "Workstation name used: %s\n", cworkstation);
 	}
