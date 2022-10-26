@@ -53,7 +53,7 @@ fi
 
 STAMP=configure-stamp
 CONFIG=config/config.h
-TESTS="endian strdup socklen_t" # endian strdup, socklen_t gethostname
+TESTS="endian strdup socklen_t gethostname"
 
 #[ -f $STAMP ] && exit 0
 touch $STAMP

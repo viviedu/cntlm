@@ -73,6 +73,7 @@ struct auth_s *g_creds = NULL;			/* throughout the whole module */
 
 int quit = 0;					/* sighandler() */
 int ntlmbasic = 0;				/* forward_request() */
+int allow_null_workstation = 0;
 int serialize = 0;
 int scanner_plugin = 0;
 long scanner_plugin_maxsize = 0;
@@ -994,6 +995,15 @@ int main(int argc, char **argv) {
 		free(tmp);
 
 		/*
+		 * Check if allow null workstation setting
+		 */
+		tmp = new(MINIBUF_SIZE);
+		CFG_DEFAULT(cf, "AllowNullWorkstation", tmp, MINIBUF_SIZE);
+		if (!strcasecmp("yes", tmp))
+			allow_null_workstation = 1;
+		free(tmp);
+
+		/*
 		 * Setup the rest of tunnels.
 		 */
 		while ((tmp = config_pop(cf, "Tunnel"))) {
@@ -1138,13 +1148,15 @@ int main(int argc, char **argv) {
 	if (!interactivehash && !magic_detect && !proxyd_list)
 		croak("No proxy service ports were successfully opened.\n", interactivepwd);
 
-	/*
-	 * Set default value for the workstation. Hostname if possible.
-	 */
-	if (!strlen(cworkstation)) {
+		/*
+		 * Set default value for the workstation if null not allowed. Hostname if possible.
+		 */
+	if (!allow_null_workstation && !strlen(cworkstation)) {
 #if config_gethostname == 1
 		gethostname(cworkstation, MINIBUF_SIZE);
 #endif
+		if (!strlen(cworkstation))
+			strlcpy(cworkstation, "cntlm", MINIBUF_SIZE);
 
 		syslog(LOG_INFO, "Workstation name used: %s\n", cworkstation);
 	}
