@@ -28,6 +28,7 @@
 #include "swap.h"
 #include "xcrypt.h"
 #include "utils.h"
+#include "globals.h"
 #include "auth.h"
 
 extern int debug;
@@ -301,6 +302,7 @@ int ntlm_response(char **dst, char *challenge, int challen, struct auth_s *creds
 	uint16_t tpos, tlen, ttype = -1, tbofs = 0, tblen = 0;
 	char *lmhash = NULL, *nthash = NULL;
 	int lmlen = 0, ntlen = 0;
+	char *fallback_workstation = new(MINIBUF_SIZE);
 
 	if (debug) {
 		printf("NTLM Challenge:\n");
@@ -308,6 +310,17 @@ int ntlm_response(char **dst, char *challenge, int challen, struct auth_s *creds
 		printf("\tChallenge: %s (len: %d)\n", tmp, challen);
 		free(tmp);
 		printf("\t    Flags: 0x%X\n", U32LE(VAL(challenge, uint32_t, 20)));
+	}
+
+	// PXMode: Always set workstation to hostname in challenge response
+	if (use_px_mode) {
+#if config_gethostname == 1
+		gethostname(fallback_workstation, MINIBUF_SIZE);
+#endif
+		if (!strlen(fallback_workstation))
+			strlcpy(fallback_workstation, "cntlm", MINIBUF_SIZE);
+
+		auth_strcpy(creds, workstation, strdup(fallback_workstation))
 	}
 
 	if (challen > 48) {

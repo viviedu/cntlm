@@ -73,6 +73,7 @@ struct auth_s *g_creds = NULL;			/* throughout the whole module */
 
 int quit = 0;					/* sighandler() */
 int ntlmbasic = 0;				/* forward_request() */
+int use_px_mode = 0; 			/* replicate px proxy behaviour */
 int allow_null_workstation = 0;
 int serialize = 0;
 int scanner_plugin = 0;
@@ -995,6 +996,15 @@ int main(int argc, char **argv) {
 		free(tmp);
 
 		/*
+		 * Check if should replicate px proxy behaviour
+		 */
+		tmp = new(MINIBUF_SIZE);
+		CFG_DEFAULT(cf, "PXMode", tmp, MINIBUF_SIZE);
+		if (!strcasecmp("yes", tmp))
+			use_px_mode = 1;
+		free(tmp);
+
+		/*
 		 * Check if allow null workstation setting
 		 */
 		tmp = new(MINIBUF_SIZE);
@@ -1148,9 +1158,9 @@ int main(int argc, char **argv) {
 	if (!interactivehash && !magic_detect && !proxyd_list)
 		croak("No proxy service ports were successfully opened.\n", interactivepwd);
 
-		/*
-		 * Set default value for the workstation if null not allowed. Hostname if possible.
-		 */
+	/*
+	 * Set default value for the workstation. Hostname if possible.
+	 */
 	if (!allow_null_workstation && !strlen(cworkstation)) {
 #if config_gethostname == 1
 		gethostname(cworkstation, MINIBUF_SIZE);
