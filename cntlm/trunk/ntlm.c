@@ -220,7 +220,10 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 
 	if (!creds->flags) {
 		if (creds->hashntlm2)
-			// We drop NTLMSSP_NEGOTIATE_56 & NTLMSSP_NEGOTIATE_128 from 0xa208b205
+			// cntlm default: flags = 0xa208b205
+			// 0xa0000000 -> 0x00000000 (clear NTLMSSP_NEGOTIATE_56, NTLMSSP_NEGOTIATE_128)
+			// 0x02000000 -> 0x00000000 (clear NTLMSSP_NEGOTIATE_VERSION)
+			// 0x00000005 -> 0x00000007 (set NTLMSSP_NEGOTIATE_UNICODE)
 			flags = 0x0008b207; // TODO: Only drop if optional config flags set
 		else if (creds->hashnt == 2)
 			flags = 0xa208b207;
