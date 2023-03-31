@@ -221,13 +221,24 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 		if (creds->hashntlm2)
 			flags = 0xa208b205;
 		else if (creds->hashnt == 2)
-			flags = 0xa208b207;
+			// flags = 0xa208b207; // Original
+			// flags = 0xa2088207; // removed workstation/domain bits (FAILS)
+			// flags = 0x0008b207; // remove 56/128 bits (FAILS)
+			// flags = 0x00088207; // removed workstation/domain bits, removed 56/128 bits.(WORKS)
+
+			// flags = 0x0008b207; // THIS IS WHAT WE WANT remove 56/128 bits, then Tweak work/domain bits afterwards.
+
+
+
 		else if (creds->hashnt && creds->hashlm)
 			flags = 0xb207;
 		else if (creds->hashnt)
 			flags = 0xb205;
 		else if (creds->hashlm)
-			flags = 0xb206;
+			// flags = 0xb206;
+			flags = 0x8206; // removed workstation/domain bits.
+
+			// flags = 0xb206; want this (ORIGINAL) + tweak bits afterwards.
 		else {
 			if (debug) {
 				printf("You're requesting with empty auth_s?!\n");
@@ -237,6 +248,8 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 		}
 	} else
 		flags = creds->flags;
+
+        // if dlen == 0 && hlen == 0, then change 0x0000B000 -> 0x00008000 in flags.
 
 	if (debug) {
 		printf("NTLM Request:\n");
@@ -251,9 +264,11 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 	VAL(buf, uint32_t, 12) = U32LE(flags);
 	VAL(buf, uint16_t, 16) = U16LE(dlen);
 	VAL(buf, uint16_t, 18) = U16LE(dlen);
+        // possibly set to 0. if dlen = 0 (doesn't seem to have an effect)
 	VAL(buf, uint32_t, 20) = U32LE(32 + hlen);
 	VAL(buf, uint16_t, 24) = U16LE(hlen);
 	VAL(buf, uint16_t, 26) = U16LE(hlen);
+        // possibly set to 0. if hlen = 0 (doesn't seem to have an effect)
 	VAL(buf, uint32_t, 28) = U32LE(32);
 
 	tmp = uppercase(strdup(creds->workstation));
