@@ -240,13 +240,13 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 	} else
 		flags = creds->flags;
 
-		// If no domain, flip NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED (to false)
+		// If no domain, clear NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED
 		if (dlen < 1) {
-			flags ^= 0x00001000;
+			flags &= ~0x00001000;
 		}
-		// if no workstation, flip NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED (to false)
+		// if no workstation, clear NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED
 		if (hlen < 1) {
-			flags ^= 0x00002000;
+			flags &= ~0x00002000;
 		}
 
 	if (debug) {
