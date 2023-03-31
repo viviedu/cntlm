@@ -220,7 +220,9 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 
 	if (!creds->flags) {
 		if (creds->hashntlm2)
-			flags = 0xa208b205;
+			// We drop NTLMSSP_NEGOTIATE_56 & NTLMSSP_NEGOTIATE_128 from 0xa208b205
+			// TODO: Only drop if optional config flags set
+			flags = 0x0008b207;
 		else if (creds->hashnt == 2)
 			flags = 0xa208b207;
 		else if (creds->hashnt && creds->hashlm)
@@ -238,6 +240,15 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 		}
 	} else
 		flags = creds->flags;
+
+		// If no domain, drop NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED
+		if (dlen < 1) {
+			// TODO: change 0x0000B000 -> 0x00008000 in flags.
+		}
+		// if no workstation, drop NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED
+		if (hlen < 1) {
+			// TODO: change 0x0000B000 -> 0x00008000 in flags.
+		}
 
 	if (debug) {
 		printf("NTLM Request:\n");
