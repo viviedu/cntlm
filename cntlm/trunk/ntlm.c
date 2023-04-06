@@ -28,7 +28,6 @@
 #include "swap.h"
 #include "xcrypt.h"
 #include "utils.h"
-#include "globals.h"
 #include "auth.h"
 
 extern int debug;
@@ -209,7 +208,7 @@ char *ntlm2_hash_password(char *username, char *domain, char *password) {
 	return passnt2;
 }
 
-int ntlm_request(char **dst, struct auth_s *creds) {
+int ntlm_request(char **dst, struct auth_s *creds, int ntlm_clean_negotiation) {
 	char *buf, *tmp;
 	int dlen, hlen;
 	uint32_t flags = 0xb206;
