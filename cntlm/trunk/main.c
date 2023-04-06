@@ -73,7 +73,7 @@ struct auth_s *g_creds = NULL;			/* throughout the whole module */
 
 int quit = 0;					/* sighandler() */
 int ntlmbasic = 0;				/* forward_request() */
-int use_px_mode = 0; 			/* replicate px proxy behaviour */
+int ntlm_clean_negotiation = 0;
 int allow_null_workstation = 0;
 int serialize = 0;
 int scanner_plugin = 0;
@@ -999,9 +999,9 @@ int main(int argc, char **argv) {
 		 * Check if should replicate px proxy behaviour
 		 */
 		tmp = new(MINIBUF_SIZE);
-		CFG_DEFAULT(cf, "PXMode", tmp, MINIBUF_SIZE);
+		CFG_DEFAULT(cf, "NTLMCleanNegotiation", tmp, MINIBUF_SIZE);
 		if (!strcasecmp("yes", tmp))
-			use_px_mode = 1;
+			ntlm_clean_negotiation = 1;
 		free(tmp);
 
 		/*

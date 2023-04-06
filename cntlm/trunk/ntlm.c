@@ -219,12 +219,14 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 	hlen = strlen(creds->workstation);
 
 	if (!creds->flags) {
-		if (creds->hashntlm2)
+		if (creds->hashntlm2 && ntlm_clean_negotiation)
 			// cntlm default: flags = 0xa208b205
 			// 0xa0000000 -> 0x00000000 (clear NTLMSSP_NEGOTIATE_56, NTLMSSP_NEGOTIATE_128)
 			// 0x02000000 -> 0x00000000 (clear NTLMSSP_NEGOTIATE_VERSION)
 			// 0x00000005 -> 0x00000007 (set NTLMSSP_NEGOTIATE_UNICODE)
-			flags = 0x0008b207; // TODO: Only drop if optional config flags set
+			flags = 0x0008b207;
+		else if (creds->hashntlm2)
+			flags = 0xa208b205;
 		else if (creds->hashnt == 2)
 			flags = 0xa208b207;
 		else if (creds->hashnt && creds->hashlm)
@@ -315,7 +317,6 @@ int ntlm_response(char **dst, char *challenge, int challen, struct auth_s *creds
 	uint16_t tpos, tlen, ttype = -1, tbofs = 0, tblen = 0;
 	char *lmhash = NULL, *nthash = NULL;
 	int lmlen = 0, ntlen = 0;
-	char *fallback_workstation = new(MINIBUF_SIZE);
 
 	if (debug) {
 		printf("NTLM Challenge:\n");
@@ -323,17 +324,6 @@ int ntlm_response(char **dst, char *challenge, int challen, struct auth_s *creds
 		printf("\tChallenge: %s (len: %d)\n", tmp, challen);
 		free(tmp);
 		printf("\t    Flags: 0x%X\n", U32LE(VAL(challenge, uint32_t, 20)));
-	}
-
-	// PXMode: Always set workstation to hostname in challenge response
-	if (use_px_mode) {
-#if config_gethostname == 1
-		gethostname(fallback_workstation, MINIBUF_SIZE);
-#endif
-		if (!strlen(fallback_workstation))
-			strlcpy(fallback_workstation, "cntlm", MINIBUF_SIZE);
-
-		auth_strcpy(creds, workstation, strdup(fallback_workstation))
 	}
 
 	if (challen > 48) {

@@ -35,7 +35,7 @@ extern int debug;
 extern struct auth_s *g_creds;			/* global NTLM credentials */
 
 extern int ntlmbasic;				/* forward_request() */
-extern int use_px_mode; 		/* replicate px proxy behaviour */
+extern int ntlm_clean_negotiation;
 extern int allow_null_workstation;
 extern int serialize;
 extern int scanner_plugin;
