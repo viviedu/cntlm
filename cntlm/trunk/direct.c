@@ -66,7 +66,7 @@ int www_authenticate(int sd, rr_data_t request, rr_data_t response, struct auth_
 	buf = new(BUFSIZE);
 
 	strcpy(buf, "NTLM ");
-	len = ntlm_request(&tmp, creds);
+	len = ntlm_request(&tmp, creds, ntlm_clean_negotiation);
 	if (len) {
 		to_base64(MEM(buf, uint8_t, 5), MEM(tmp, uint8_t, 0), len, BUFSIZE-5);
 		free(tmp);

@@ -73,6 +73,8 @@ struct auth_s *g_creds = NULL;			/* throughout the whole module */
 
 int quit = 0;					/* sighandler() */
 int ntlmbasic = 0;				/* forward_request() */
+int ntlm_clean_negotiation = 0;
+int allow_null_workstation = 0;
 int serialize = 0;
 int scanner_plugin = 0;
 long scanner_plugin_maxsize = 0;
@@ -994,6 +996,24 @@ int main(int argc, char **argv) {
 		free(tmp);
 
 		/*
+		 * Check if should replicate px proxy behaviour
+		 */
+		tmp = new(MINIBUF_SIZE);
+		CFG_DEFAULT(cf, "NTLMCleanNegotiation", tmp, MINIBUF_SIZE);
+		if (!strcasecmp("yes", tmp))
+			ntlm_clean_negotiation = 1;
+		free(tmp);
+
+		/*
+		 * Check if allow null workstation setting
+		 */
+		tmp = new(MINIBUF_SIZE);
+		CFG_DEFAULT(cf, "AllowNullWorkstation", tmp, MINIBUF_SIZE);
+		if (!strcasecmp("yes", tmp))
+			allow_null_workstation = 1;
+		free(tmp);
+
+		/*
 		 * Setup the rest of tunnels.
 		 */
 		while ((tmp = config_pop(cf, "Tunnel"))) {
@@ -1141,7 +1161,7 @@ int main(int argc, char **argv) {
 	/*
 	 * Set default value for the workstation. Hostname if possible.
 	 */
-	if (!strlen(cworkstation)) {
+	if (!allow_null_workstation && !strlen(cworkstation)) {
 #if config_gethostname == 1
 		gethostname(cworkstation, MINIBUF_SIZE);
 #endif

@@ -208,7 +208,7 @@ char *ntlm2_hash_password(char *username, char *domain, char *password) {
 	return passnt2;
 }
 
-int ntlm_request(char **dst, struct auth_s *creds) {
+int ntlm_request(char **dst, struct auth_s *creds, int ntlm_clean_negotiation) {
 	char *buf, *tmp;
 	int dlen, hlen;
 	uint32_t flags = 0xb206;
@@ -218,7 +218,13 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 	hlen = strlen(creds->workstation);
 
 	if (!creds->flags) {
-		if (creds->hashntlm2)
+		if (creds->hashntlm2 && ntlm_clean_negotiation)
+			// cntlm default: flags = 0xa208b205
+			// 0xa0000000 -> 0x00000000 (clear NTLMSSP_NEGOTIATE_56, NTLMSSP_NEGOTIATE_128)
+			// 0x02000000 -> 0x00000000 (clear NTLMSSP_NEGOTIATE_VERSION)
+			// 0x00000005 -> 0x00000007 (set NTLMSSP_NEGOTIATE_UNICODE)
+			flags = 0x0008b207;
+		else if (creds->hashntlm2)
 			flags = 0xa208b205;
 		else if (creds->hashnt == 2)
 			flags = 0xa208b207;
@@ -237,6 +243,15 @@ int ntlm_request(char **dst, struct auth_s *creds) {
 		}
 	} else
 		flags = creds->flags;
+
+		// If no domain, clear NTLMSSP_NEGOTIATE_OEM_DOMAIN_SUPPLIED
+		if (dlen < 1) {
+			flags &= ~0x00001000;
+		}
+		// if no workstation, clear NTLMSSP_NEGOTIATE_OEM_WORKSTATION_SUPPLIED
+		if (hlen < 1) {
+			flags &= ~0x00002000;
+		}
 
 	if (debug) {
 		printf("NTLM Request:\n");
